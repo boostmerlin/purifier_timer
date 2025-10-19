@@ -159,6 +159,7 @@ export default function App() {
         )}
         <View style={styles.block}>
           <PurifierUnit
+            title='长虹H502'
             width={500}
             layout={{ autoHeight: true, maxPerRow: 10, rowGap: 16, capsuleWidth: 60 }}
             filters={viewModel.map((v) => ({
