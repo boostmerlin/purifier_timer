@@ -80,9 +80,9 @@ export const FilterEditModal: React.FC<FilterEditModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
       >
-        <TouchableOpacity 
-          style={styles.backdrop} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
           onPress={onClose}
         />
         <View style={styles.container}>
@@ -114,13 +114,25 @@ export const FilterEditModal: React.FC<FilterEditModalProps> = ({
 
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>开始使用日期</Text>
-              <TextInput
-                style={styles.input}
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#9ca3af"
-              />
+              <View style={styles.row}>
+                <TextInput
+                  style={[styles.input, styles.inputFlex]}
+                  value={startDate}
+                  onChangeText={setStartDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#9ca3af"
+                />
+                <TouchableOpacity
+                  style={styles.resetButton}
+                  onPress={() => {
+                    const now = new Date();
+                    const today = now.toISOString().split('T')[0];
+                    setStartDate(today);
+                  }}
+                >
+                  <Text style={styles.resetButtonText}>重置</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.hint}>格式：年-月-日，例如：2024-01-15</Text>
             </View>
 
@@ -226,5 +238,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  inputFlex: {
+    flex: 1,
+  },
+  resetButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resetButtonText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '600',
   },
 });

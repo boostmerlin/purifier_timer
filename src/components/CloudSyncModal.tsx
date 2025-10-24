@@ -93,14 +93,27 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
       return;
     }
 
-    try {
-      await onEnableSync(inputKey.trim());
-      showAlert('成功', '已连接到云端数据');
-      setInputKey('');
-      setMode('main');
-    } catch (error) {
-      showAlert('连接失败', error instanceof Error ? error.message : '未知错误');
-    }
+    // 当用户使用已有 key 时,提示确认将使用云端数据覆盖本地
+    showAlert(
+      '确认覆盖',
+      '即将使用云端数据覆盖本地，是否继续？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '继续',
+          onPress: async () => {
+            try {
+              await onEnableSync(inputKey.trim());
+              showAlert('成功', '已连接到云端数据');
+              setInputKey('');
+              setMode('main');
+            } catch (error) {
+              showAlert('连接失败', error instanceof Error ? error.message : '未知错误');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleDisable = () => {

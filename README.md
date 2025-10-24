@@ -14,7 +14,7 @@ A cross-platform React Native (Expo) app to track water purifier filter usage an
 ## Quick start (development)
 
 Requirements:
-- Node.js 14+
+- Node.js 20.19.4
 - npm or Yarn
 - Expo CLI (optional, recommended for native testing)
 

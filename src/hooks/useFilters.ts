@@ -130,7 +130,33 @@ export function useFilters() {
         throw new Error('无效的云端 key 格式');
       }
 
-      // 保存当前数据到云端
+      // 如果传入了已有 key,优先从云端拉取数据并覆盖本地
+      if (key) {
+        const cloudData = await CloudStorageService.loadFilters(syncKey);
+
+        if (cloudData && cloudData.length > 0) {
+          // 云端有数据,使用云端数据覆盖本地
+          setFilters(cloudData);
+          await StorageService.saveFilters(cloudData);
+          await StorageService.saveCloudKey(syncKey);
+          setCloudKey(syncKey);
+          setLastSyncTime(new Date());
+          return syncKey;
+        }
+
+        // 如果云端没有数据,回退为将本地数据上传到云端(保持兼容旧行为)
+        const uploadResult = await CloudStorageService.saveFilters(syncKey, filters);
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || '启用云端同步失败');
+        }
+
+        await StorageService.saveCloudKey(syncKey);
+        setCloudKey(syncKey);
+        setLastSyncTime(new Date());
+        return syncKey;
+      }
+
+      // 未传入 key (生成新 key): 保存当前数据到云端
       const result = await CloudStorageService.saveFilters(syncKey, filters);
       if (!result.success) {
         throw new Error(result.error || '启用云端同步失败');
