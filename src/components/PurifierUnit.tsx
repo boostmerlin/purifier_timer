@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
 import FilterCapsule from './FilterCapsule';
 
@@ -90,6 +90,9 @@ const PurifierUnit: React.FC<PurifierUnitProps> = ({
   const rowWidth = capsuleWidth * itemsPerRow + columnGap * (itemsPerRow - 1);
   const startOffset = Math.max(0, (availableWidth - rowWidth) / 2);
 
+  // 锁定状态，默认 true（锁定）
+  const [locked, setLocked] = useState(true);
+
   return (
     <View style={[styles.container, { width, height: computedHeight }, style]}
       accessibilityLabel="净水器外框"
@@ -135,23 +138,31 @@ const PurifierUnit: React.FC<PurifierUnitProps> = ({
           );
         })}
       </View>
-      
-      {/* Footer 底部操作栏 */}
+
+      {/* Footer 底部操作栏，锁图标放在 - 和 + 按钮之间 */}
       {(onAdd || onRemove) && (
         <View style={styles.footer}>
           <TouchableOpacity 
-            style={[styles.footerButton, !onRemove && styles.footerButtonDisabled]} 
+            style={[styles.footerButton, (!onRemove || filters.length === 0 || locked) && styles.footerButtonDisabled]} 
             onPress={onRemove}
-            disabled={!onRemove || filters.length === 0}
+            disabled={!onRemove || filters.length === 0 || locked}
           >
-            <Text style={[styles.footerButtonText, (!onRemove || filters.length === 0) && styles.footerButtonTextDisabled]}>−</Text>
+            <Text style={[styles.footerButtonText, (!onRemove || filters.length === 0 || locked) && styles.footerButtonTextDisabled]}>−</Text>
+          </TouchableOpacity>
+          {/* 锁图标，放在中间 */}
+          <TouchableOpacity
+            style={styles.lockButton}
+            onPress={() => setLocked((v) => !v)}
+            accessibilityLabel={locked ? '解锁操作' : '锁定操作'}
+          >
+            <Text style={styles.lockIcon}>{locked ? '🔒' : '🔓'}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.footerButton, !onAdd && styles.footerButtonDisabled]} 
+            style={[styles.footerButton, (!onAdd || locked) && styles.footerButtonDisabled]} 
             onPress={onAdd}
-            disabled={!onAdd}
+            disabled={!onAdd || locked}
           >
-            <Text style={[styles.footerButtonText, !onAdd && styles.footerButtonTextDisabled]}>+</Text>
+            <Text style={[styles.footerButtonText, (!onAdd || locked) && styles.footerButtonTextDisabled]}>+</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -204,6 +215,17 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e5e7eb',
     backgroundColor: '#f9fafb',
+    alignItems: 'center',
+  },
+  lockButton: {
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockIcon: {
+    fontSize: 22,
+    color: '#374151',
+    opacity: 0.7,
   },
   footerButton: {
     flex: 1,
