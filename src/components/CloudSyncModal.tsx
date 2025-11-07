@@ -128,7 +128,8 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
           onPress: async () => {
             try {
               await onDisableSync();
-              showAlert('成功', '已禁用云端同步');
+              setAlertConfig((prev) => ({ ...prev, visible: false }));
+              onClose();
             } catch (error) {
               showAlert('失败', error instanceof Error ? error.message : '未知错误');
             }

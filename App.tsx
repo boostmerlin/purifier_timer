@@ -7,6 +7,7 @@ import { ConfirmDialog } from './src/components/ConfirmDialog';
 import { CloudSyncModal } from './src/components/CloudSyncModal';
 import { AlertDialog } from './src/components/AlertDialog';
 import { useMemo, useState, useEffect } from 'react';
+import { StorageService } from './src/services/storage';
 import { FilterModel, FilterLetter } from './src/types';
 import { computeFilterProgress } from './src/utils/filters';
 import { useFilters } from './src/hooks/useFilters';
@@ -47,6 +48,7 @@ export default function App() {
   // 用于触发进度重新计算的状态
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
+  const [unitTitle, setUnitTitle] = useState<string>('长虹H502');
 
   // 每小时自动刷新进度
   useEffect(() => {
@@ -59,6 +61,33 @@ export default function App() {
     // 清理函数:组件卸载时清除定时器
     return () => clearInterval(intervalId);
   }, []);
+
+  // 加载本地持久化的标题
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const t = await StorageService.getTitle();
+      if (mounted && t) setUnitTitle(t);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 标题变化时持久化
+  useEffect(() => {
+    StorageService.saveTitle(unitTitle).catch(() => {});
+  }, [unitTitle]);
+
+  // 每次完成一次云同步后（lastSyncTime 变化），尝试从本地存储刷新标题（以便云端下发的标题能更新到 UI）
+  useEffect(() => {
+    (async () => {
+      const t = await StorageService.getTitle();
+      if (t && t !== unitTitle) {
+        setUnitTitle(t);
+      }
+    })();
+  }, [lastSyncTime]);
 
   const viewModel = useMemo(() => {
     return filters.map((f) => {
@@ -159,7 +188,9 @@ export default function App() {
         )}
         <View style={styles.block}>
           <PurifierUnit
-            title='长虹H502'
+            title={unitTitle}
+            editableTitle
+            onChangeTitle={setUnitTitle}
             width={500}
             layout={{ autoHeight: true, maxPerRow: 10, rowGap: 16, capsuleWidth: 60 }}
             filters={viewModel.map((v) => ({

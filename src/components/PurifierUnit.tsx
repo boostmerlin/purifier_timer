@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ViewStyle, TouchableOpacity, TextInput } from 'react-native';
 import FilterCapsule from './FilterCapsule';
 
 export type PurifierUnitProps = {
@@ -9,6 +9,8 @@ export type PurifierUnitProps = {
   style?: ViewStyle;
   // 标题
   title?: string; // 标题文字(默认为 'Purifier')
+  editableTitle?: boolean; // 是否允许编辑标题
+  onChangeTitle?: (title: string) => void; // 标题变更回调
   // 布局参数（可选）：左右内边距、上下滤芯留白、最小间距、最小/最大滤芯粗细
   layout?: {
     sidePadding?: number;      // 机身左右内边距
@@ -44,6 +46,8 @@ const PurifierUnit: React.FC<PurifierUnitProps> = ({
   width = 320,
   style,
   title = 'Purifier',
+  editableTitle,
+  onChangeTitle,
   layout,
   filters,
   onFilterLongPress,
@@ -77,12 +81,14 @@ const PurifierUnit: React.FC<PurifierUnitProps> = ({
   
   // 计算容器所需高度：header + 上下padding + (滤芯高度+徽标高度) × 行数 + 行间距 × (行数-1) + footer
   const headerHeight = 36;
-  const footerHeight = (onAdd || onRemove) ? 48 : 0; // Footer 高度，如果有回调则显示
-  const singleRowHeight = capsuleHeight + badgeHeight; // 单行高度 = 滤芯 + 徽标
+  const footerHeight = (onAdd || onRemove) ? 46 : 0; // Footer 高度，如果有回调则显示
+  const badgeMargin = 4; // 与 styles.bottomBadge.marginTop 一致
+  const singleRowHeight = capsuleHeight + badgeHeight + badgeMargin; // 单行高度 = 滤芯 + 徽标 + 徽标上边距
   const contentHeight = totalRows > 0 
     ? singleRowHeight * totalRows + rowGap * Math.max(0, totalRows - 1)
     : 0; // 没有滤芯时内容高度为0
-  const computedHeight = headerHeight + (totalRows > 0 ? verticalPadding * 2 : 0) + contentHeight + footerHeight;
+  const safetyBuffer = 2; // 安全余量，避免边框/像素舍入导致的裁切
+  const computedHeight = headerHeight + (totalRows > 0 ? verticalPadding * 2 : 0) + contentHeight + footerHeight + safetyBuffer;
 
   // 计算每行实际显示的滤芯数量
   const itemsPerRow = Math.min(maxPerRow, filters.length);
@@ -92,13 +98,46 @@ const PurifierUnit: React.FC<PurifierUnitProps> = ({
 
   // 锁定状态，默认 true（锁定）
   const [locked, setLocked] = useState(true);
+  // 标题编辑状态
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(title);
+  useEffect(() => {
+    setTitleDraft(title);
+  }, [title]);
 
   return (
     <View style={[styles.container, { width, height: computedHeight }, style]}
       accessibilityLabel="净水器外框"
     >
       <View style={styles.header}>
-        <Text style={styles.headerText}>{title}</Text>
+        {editableTitle && onChangeTitle ? (
+          editingTitle ? (
+            <TextInput
+              style={styles.headerInput}
+              value={titleDraft}
+              onChangeText={setTitleDraft}
+              autoFocus
+              placeholder="请输入标题"
+              onSubmitEditing={() => {
+                const t = titleDraft.trim();
+                if (t.length > 0) onChangeTitle(t);
+                setEditingTitle(false);
+              }}
+              onBlur={() => {
+                const t = titleDraft.trim();
+                if (t.length > 0) onChangeTitle(t);
+                setEditingTitle(false);
+              }}
+              returnKeyType="done"
+            />
+          ) : (
+            <TouchableOpacity onPress={() => setEditingTitle(true)} accessibilityLabel="编辑标题">
+              <Text style={styles.headerText}>{title}</Text>
+            </TouchableOpacity>
+          )
+        ) : (
+          <Text style={styles.headerText}>{title}</Text>
+        )}
       </View>
       <View style={[
         styles.body, 
@@ -195,6 +234,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#374151',
   },
+  headerInput: {
+    height: 28,
+    minWidth: 120,
+    paddingHorizontal: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
+    backgroundColor: '#fff',
+    color: '#111827',
+  },
   body: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -210,7 +259,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   footer: {
-    height: 48,
+    height: 46,
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e5e7eb',
@@ -230,7 +279,6 @@ const styles = StyleSheet.create({
   footerButton: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: 'transparent',
   },
   footerButtonDisabled: {

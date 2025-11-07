@@ -24,12 +24,15 @@ export function useFilters() {
         
         if (savedCloudKey) {
           setCloudKey(savedCloudKey);
-          // 如果有云端 key,优先从云端加载
-          const cloudData = await CloudStorageService.loadFilters(savedCloudKey);
-          if (cloudData && cloudData.length > 0) {
-            setFilters(cloudData);
-            // 同时保存到本地作为缓存
-            await StorageService.saveFilters(cloudData);
+          // 如果有云端 key,优先从云端加载（含标题）
+          const cloud = await CloudStorageService.loadData(savedCloudKey);
+          if (cloud && cloud.filters && cloud.filters.length > 0) {
+            setFilters(cloud.filters);
+            // 同步保存到本地作为缓存
+            await StorageService.saveFilters(cloud.filters);
+            if (cloud.title) {
+              await StorageService.saveTitle(cloud.title);
+            }
             setLastSyncTime(new Date());
             return;
           }
@@ -78,7 +81,8 @@ export function useFilters() {
 
     setIsSyncing(true);
     try {
-      const result = await CloudStorageService.saveFilters(cloudKey, data);
+      const title = (await StorageService.getTitle()) || undefined;
+      const result = await CloudStorageService.saveData(cloudKey, { version: 1, filters: data, title });
       if (result.success) {
         setLastSyncTime(new Date());
       } else {
@@ -101,10 +105,13 @@ export function useFilters() {
 
     setIsSyncing(true);
     try {
-      const cloudData = await CloudStorageService.loadFilters(cloudKey);
-      if (cloudData) {
-        setFilters(cloudData);
-        await StorageService.saveFilters(cloudData);
+      const cloud = await CloudStorageService.loadData(cloudKey);
+      if (cloud) {
+        setFilters(cloud.filters || []);
+        await StorageService.saveFilters(cloud.filters || []);
+        if (cloud.title) {
+          await StorageService.saveTitle(cloud.title);
+        }
         setLastSyncTime(new Date());
         return true;
       }
@@ -132,20 +139,24 @@ export function useFilters() {
 
       // 如果传入了已有 key,优先从云端拉取数据并覆盖本地
       if (key) {
-        const cloudData = await CloudStorageService.loadFilters(syncKey);
+        const cloud = await CloudStorageService.loadData(syncKey);
 
-        if (cloudData && cloudData.length > 0) {
-          // 云端有数据,使用云端数据覆盖本地
-          setFilters(cloudData);
-          await StorageService.saveFilters(cloudData);
+        if (cloud && cloud.filters && cloud.filters.length > 0) {
+          // 云端有数据,使用云端数据覆盖本地（含标题）
+          setFilters(cloud.filters);
+          await StorageService.saveFilters(cloud.filters);
+          if (cloud.title) {
+            await StorageService.saveTitle(cloud.title);
+          }
           await StorageService.saveCloudKey(syncKey);
           setCloudKey(syncKey);
           setLastSyncTime(new Date());
           return syncKey;
         }
 
-        // 如果云端没有数据,回退为将本地数据上传到云端(保持兼容旧行为)
-        const uploadResult = await CloudStorageService.saveFilters(syncKey, filters);
+        // 如果云端没有数据,回退为将本地数据上传到云端(保持兼容旧行为,但包含标题)
+        const title = (await StorageService.getTitle()) || undefined;
+        const uploadResult = await CloudStorageService.saveData(syncKey, { version: 1, filters, title });
         if (!uploadResult.success) {
           throw new Error(uploadResult.error || '启用云端同步失败');
         }
@@ -156,8 +167,9 @@ export function useFilters() {
         return syncKey;
       }
 
-      // 未传入 key (生成新 key): 保存当前数据到云端
-      const result = await CloudStorageService.saveFilters(syncKey, filters);
+      // 未传入 key (生成新 key): 保存当前数据到云端（包含标题）
+      const title = (await StorageService.getTitle()) || undefined;
+      const result = await CloudStorageService.saveData(syncKey, { version: 1, filters, title });
       if (!result.success) {
         throw new Error(result.error || '启用云端同步失败');
       }

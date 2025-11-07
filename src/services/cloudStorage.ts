@@ -1,5 +1,11 @@
 import { FilterModel } from '../types';
 
+export type CloudDataV1 = {
+  version: 1;
+  filters: FilterModel[];
+  title?: string;
+};
+
 const TEXTDB_API_URL = 'https://textdb.online/update/';
 const TEXTDB_READ_URL = 'https://textdb.online/';
 
@@ -29,11 +35,45 @@ export class CloudStorageService {
         return null;
       }
 
-      // 解析 JSON 数据
-      return JSON.parse(text) as FilterModel[];
+      // 兼容两种格式：
+      // 1) 旧格式：直接是 FilterModel[]
+      // 2) 新格式：{ version:1, filters:[], title?: string }
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed as FilterModel[];
+      }
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.filters)) {
+        return parsed.filters as FilterModel[];
+      }
+      return null;
     } catch (error) {
       console.error('从云端加载数据失败:', error);
       // 如果是解析错误或网络错误,返回 null 而不是抛出异常
+      return null;
+    }
+  }
+
+  /**
+   * 从云端加载完整数据（含标题）
+   */
+  static async loadData(key: string): Promise<CloudDataV1 | null> {
+    try {
+      const response = await fetch(`${TEXTDB_READ_URL}${key}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const text = await response.text();
+      if (!text || text.trim() === '') return null;
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return { version: 1, filters: parsed as FilterModel[] };
+      }
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.filters)) {
+        return { version: 1, filters: parsed.filters as FilterModel[], title: parsed.title };
+      }
+      return null;
+    } catch (e) {
+      console.error('从云端加载完整数据失败:', e);
       return null;
     }
   }
@@ -83,6 +123,33 @@ export class CloudStorageService {
         success: false,
         error: error instanceof Error ? error.message : '未知错误',
       };
+    }
+  }
+
+  /**
+   * 保存完整数据（含标题）到云端，向后兼容 textdb 存储
+   */
+  static async saveData(
+    key: string,
+    data: CloudDataV1
+  ): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+      const value = JSON.stringify(data);
+      const encodedKey = encodeURIComponent(key);
+      const encodedValue = encodeURIComponent(value);
+      const url = `${TEXTDB_API_URL}?key=${encodedKey}&value=${encodedValue}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      if (result.status === 1) {
+        return { success: true, url: result.data?.url };
+      }
+      return { success: false, error: '保存失败' };
+    } catch (error) {
+      console.error('保存完整数据到云端失败:', error);
+      return { success: false, error: error instanceof Error ? error.message : '未知错误' };
     }
   }
 

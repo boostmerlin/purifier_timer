@@ -3,6 +3,7 @@ import { FilterModel } from '../types';
 
 const STORAGE_KEY = '@purifier_filters';
 const CLOUD_KEY_STORAGE = '@purifier_cloud_key'; // 存储云端 key
+const TITLE_KEY = '@purifier_title'; // 存储机型/标题
 
 /**
  * 数据存储服务
@@ -85,6 +86,30 @@ export class StorageService {
       await AsyncStorage.removeItem(CLOUD_KEY_STORAGE);
     } catch (error) {
       console.error('删除云端 key 失败:', error);
+    }
+  }
+
+  /**
+   * 保存机身标题（例如“长虹H502”）
+   */
+  static async saveTitle(title: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(TITLE_KEY, title);
+    } catch (error) {
+      console.error('保存标题失败:', error);
+      throw new Error('保存标题失败');
+    }
+  }
+
+  /**
+   * 获取机身标题
+   */
+  static async getTitle(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(TITLE_KEY);
+    } catch (error) {
+      console.error('获取标题失败:', error);
+      return null;
     }
   }
 
