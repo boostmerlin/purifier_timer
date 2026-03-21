@@ -1,0 +1,28 @@
+page {
+  background: #f5f7fb;
+  color: #1f2937;
+  font-size: 28rpx;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
+}
+
+.btn-primary {
+  background: #0969da;
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-muted {
+  background: #f6f8fa;
+  color: #1f2937;
+  border: 1px solid #d0d7de;
+}

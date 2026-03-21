@@ -1,0 +1,49 @@
+<view class="page">
+  <view class="card panel">
+    <view class="panel-title">
+      <t-icon name="cloud" size="20" color="#0969da" />
+      <text>设置</text>
+    </view>
+
+    <block wx:if="{{cloudKey}}">
+      <view class="status-row">
+        <text class="status-label">同步状态</text>
+        <text class="status-value">{{isSyncing ? '同步中...' : '已启用'}}</text>
+      </view>
+      <view class="status-row">
+        <text class="status-label">上次同步</text>
+        <text class="status-value">{{lastSyncLabel}}</text>
+      </view>
+
+      <view class="key-box" bindtap="copyCloudKey">
+        <text class="key-label">同步密钥（点击复制）</text>
+        <text class="key-value" selectable>{{cloudKey}}</text>
+      </view>
+
+      <view class="action-group">
+        <button class="action-btn btn-muted" bindtap="pullFromCloud">拉取云端数据</button>
+        <button class="action-btn btn-danger" bindtap="disableCloudSync">禁用同步</button>
+      </view>
+    </block>
+
+    <block wx:else>
+      <text class="desc">启用云端同步后，您的数据可在多个设备间自动同步。</text>
+      <button class="action-btn btn-primary" bindtap="enableWithNewKey">生成新密钥并启用</button>
+
+      <view class="divider"></view>
+
+      <text class="sub-title">使用已有密钥</text>
+      <input
+        class="key-input"
+        value="{{inputKey}}"
+        placeholder="请输入同步密钥"
+        bindinput="onInputKey"
+      />
+      <button class="action-btn btn-muted" bindtap="connectExistingKey">连接已有密钥</button>
+    </block>
+
+    <view class="divider"></view>
+    <text class="sub-title">数据管理</text>
+    <button class="action-btn btn-danger" bindtap="confirmResetAll">重置存档</button>
+  </view>
+</view>

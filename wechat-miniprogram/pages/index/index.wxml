@@ -1,0 +1,117 @@
+<view class="page">
+  <view class="hero">
+    <text class="hero-title">净水器滤芯进度</text>
+
+    <view class="summary" wx:if="{{cloudKey}}" bindtap="copyCloudKey">
+      <text class="summary-text">☁️ 云端同步已启用 · {{isSyncing ? '同步中...' : '共 ' + filters.length + ' 个滤芯'}}</text>
+      <text class="summary-key" selectable>{{cloudKey}}</text>
+    </view>
+    <view class="summary" wx:else>
+      <text class="summary-text">💾 本地存储 (共 {{filters.length}} 个滤芯) · 每小时刷新进度</text>
+    </view>
+
+  </view>
+
+  <view class="purifier card">
+    <view class="purifier-header" bindtap="startEditTitle">
+      <block wx:if="{{editingTitle}}">
+        <input
+          class="title-input"
+          value="{{titleDraft}}"
+          placeholder="请输入标题"
+          bindinput="onTitleInput"
+          bindconfirm="confirmTitle"
+          focus
+        />
+      </block>
+      <block wx:else>
+        <text class="unit-title">{{unitTitle}}</text>
+      </block>
+    </view>
+
+    <view class="filter-grid">
+      <view
+        class="filter-item"
+        wx:for="{{filters}}"
+        wx:key="letter"
+        data-index="{{index}}"
+        data-letter="{{item.letter}}"
+        bindtap="toggleDisplayMode"
+        bindlongpress="onFilterLongPress"
+      >
+        <view class="capsule-shell">
+          <view class="capsule-fill" style="height: {{item.progressPercent}}%; background: {{item.color}};"></view>
+          <view class="capsule-content">
+            <text class="capsule-label">{{item.label || item.letter}}</text>
+            <text class="capsule-value">{{item.showDays ? (item.remainingDays + '天') : (item.progressPercent + '%')}}</text>
+          </view>
+        </view>
+        <text class="letter">{{item.letter}}</text>
+      </view>
+    </view>
+
+    <view class="footer-actions">
+      <button
+        class="footer-btn footer-btn-minus {{locked || filters.length === 0 ? 'footer-btn-disabled' : 'footer-btn-active'}}"
+        bindtap="removeLastFilter"
+        disabled="{{locked || filters.length === 0}}"
+      >−</button>
+      <view class="footer-lock {{locked ? '' : 'footer-lock-active'}}" bindtap="toggleLock">
+        <t-icon name="{{locked ? 'lock-on' : 'lock-off'}}" size="22" color="{{locked ? '#9ca3af' : '#f59e0b'}}" />
+      </view>
+      <button
+        class="footer-btn footer-btn-plus {{locked ? 'footer-btn-disabled' : 'footer-btn-active'}}"
+        bindtap="addFilter"
+        disabled="{{locked}}"
+      >+</button>
+    </view>
+  </view>
+
+  <view class="title-edit-actions" wx:if="{{editingTitle}}">
+    <button class="mini-btn btn-muted" bindtap="cancelTitleEdit">取消</button>
+    <button class="mini-btn btn-primary" bindtap="confirmTitle">保存标题</button>
+  </view>
+
+  <view class="overlay" wx:if="{{showContextMenu}}" bindtap="closeContextMenu">
+    <view class="modal context-menu" catchtap="noop">
+      <text class="modal-title">滤芯 {{contextLetter}}</text>
+      <button class="menu-btn" bindtap="openEditModal">编辑</button>
+      <button class="menu-btn danger" bindtap="openDeleteConfirm">删除</button>
+      <button class="menu-btn" bindtap="closeContextMenu">取消</button>
+    </view>
+  </view>
+
+  <view class="overlay" wx:if="{{showDeleteConfirm}}" bindtap="cancelDelete">
+    <view class="modal" catchtap="noop">
+      <text class="modal-title">确认删除</text>
+      <text class="modal-text">确定要删除滤芯 {{contextLetter}} 吗？</text>
+      <view class="modal-actions">
+        <button class="mini-btn btn-muted" bindtap="cancelDelete">取消</button>
+        <button class="mini-btn btn-danger" bindtap="confirmDeleteFilter">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="overlay" wx:if="{{showEditModal}}" bindtap="closeEditModal">
+    <view class="modal edit-modal" catchtap="noop">
+      <text class="modal-title">编辑滤芯 {{editForm.letter}}</text>
+      <view class="field">
+        <text class="field-label">名称</text>
+        <input class="field-input" value="{{editForm.label}}" placeholder="例如：PPF棉" bindinput="onEditLabelInput" />
+      </view>
+      <view class="field">
+        <text class="field-label">寿命（天）</text>
+        <input class="field-input" type="number" value="{{editForm.lifespanDays}}" placeholder="例如：180" bindinput="onEditLifespanInput" />
+      </view>
+      <view class="field">
+        <text class="field-label">开始使用日期</text>
+        <input class="field-input" value="{{editForm.startDate}}" placeholder="YYYY-MM-DD" bindinput="onEditDateInput" />
+        <text class="field-hint" bindtap="resetEditDate">点击重置为今天</text>
+      </view>
+      <view class="modal-actions">
+        <button class="mini-btn btn-muted" bindtap="closeEditModal">取消</button>
+        <button class="mini-btn btn-primary" bindtap="saveEditFilter">保存</button>
+      </view>
+    </view>
+  </view>
+</view>
