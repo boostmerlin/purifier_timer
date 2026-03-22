@@ -40,7 +40,14 @@
         bindlongpress="onFilterLongPress"
       >
         <view class="capsule-shell">
-          <view class="capsule-fill" style="height: {{item.progressPercent}}%; background: {{item.color}};"></view>
+          <view class="capsule-fill" style="height: {{item.progressPercent}}%; background: {{item.color}};">
+            <view class="capsule-gloss"></view>
+            <view class="capsule-wave capsule-wave-1"></view>
+            <view class="capsule-wave capsule-wave-2"></view>
+            <view class="capsule-bubble capsule-bubble-1"></view>
+            <view class="capsule-bubble capsule-bubble-2"></view>
+            <view class="capsule-bubble capsule-bubble-3"></view>
+          </view>
           <view class="capsule-content">
             <text class="capsule-label">{{item.label || item.letter}}</text>
             <text class="capsule-value">{{item.showDays ? (item.remainingDays + '天') : (item.progressPercent + '%')}}</text>

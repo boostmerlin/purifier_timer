@@ -122,6 +122,130 @@
   right: 0;
   bottom: 0;
   transition: height 0.3s ease;
+  overflow: hidden;
+}
+
+.capsule-gloss {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  animation: water-gloss 3.6s ease-in-out infinite;
+}
+
+.capsule-wave {
+  position: absolute;
+  left: -12%;
+  width: 124%;
+  height: 34%;
+  top: 100%;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.capsule-wave-1 {
+  animation: wave-rise-a 3.8s linear infinite;
+}
+
+.capsule-wave-2 {
+  top: 115%;
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.16);
+  animation: wave-rise-b 5.1s linear infinite;
+}
+
+.capsule-bubble {
+  position: absolute;
+  bottom: -16%;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.45);
+  animation-name: bubble-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.capsule-bubble-1 {
+  left: 18%;
+  width: 10rpx;
+  height: 10rpx;
+  animation-duration: 2.8s;
+}
+
+.capsule-bubble-2 {
+  left: 48%;
+  width: 14rpx;
+  height: 14rpx;
+  opacity: 0.7;
+  animation-duration: 3.4s;
+  animation-delay: 0.9s;
+}
+
+.capsule-bubble-3 {
+  left: 72%;
+  width: 9rpx;
+  height: 9rpx;
+  opacity: 0.85;
+  animation-duration: 2.5s;
+  animation-delay: 0.45s;
+}
+
+@keyframes wave-rise-a {
+  0% {
+    transform: translateY(0) translateX(-8%) scaleX(0.96);
+  }
+
+  50% {
+    transform: translateY(-210%) translateX(6%) scaleX(1.04);
+  }
+
+  100% {
+    transform: translateY(-440%) translateX(-4%) scaleX(0.98);
+  }
+}
+
+@keyframes wave-rise-b {
+  0% {
+    transform: translateY(0) translateX(7%) scaleX(1.03);
+  }
+
+  50% {
+    transform: translateY(-230%) translateX(-6%) scaleX(0.95);
+  }
+
+  100% {
+    transform: translateY(-470%) translateX(5%) scaleX(1.02);
+  }
+}
+
+@keyframes water-gloss {
+  0%,
+  100% {
+    opacity: 0.06;
+  }
+
+  50% {
+    opacity: 0.14;
+  }
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.85);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.75;
+  }
+
+  55% {
+    transform: translateY(-180%) translateX(6rpx) scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-430%) translateX(-4rpx) scale(1.08);
+    opacity: 0;
+  }
 }
 
 .capsule-content {
